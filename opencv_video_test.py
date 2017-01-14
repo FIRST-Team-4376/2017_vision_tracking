@@ -29,11 +29,13 @@ while(True):
     gray = cv2.cvtColor(masked_image,cv2.COLOR_BGR2GRAY)
     gray = np.float32(gray)
     corners = cv2.goodFeaturesToTrack(gray, 100, 0.10, 10)
-    corners = np.int0(corners)
-
-    for corner in corners:
-        x,y = corner.ravel()
-        cv2.circle(masked_image,(x,y),5,255,-1)
+    if corners is None:
+        print("no corners!")
+    else:
+        corners = np.int0(corners)
+        for corner in corners:
+            x,y = corner.ravel()
+            cv2.circle(masked_image,(x,y),5,255,-1)
  
     # imshow doesnt work on mac for some reason
     cv2.imshow('frame',masked_image)
