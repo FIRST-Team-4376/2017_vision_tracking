@@ -8,8 +8,8 @@ from matplotlib import pyplot as plt
 # hsv_min = cv2.cvtColor(rgb_min_blue,cv2.COLOR_BGR2HSV)
 
 # green tape
-hsv_min = np.array([70,50,40])
-hsv_max = np.array([100,255,255])
+hsv_min = np.array([40,40,10])
+hsv_max = np.array([120,255,255])
 
 #blue
 # hsv_min = np.array([110,50,50])
@@ -24,10 +24,19 @@ while(True):
 
     mask = cv2.inRange(hsv_img, hsv_min, hsv_max)
 
-    res = cv2.bitwise_and(img,img, mask= mask)
+    masked_image = cv2.bitwise_and(img,img, mask= mask)
+
+    gray = cv2.cvtColor(masked_image,cv2.COLOR_BGR2GRAY)
+    gray = np.float32(gray)
+    corners = cv2.goodFeaturesToTrack(gray, 100, 0.10, 10)
+    corners = np.int0(corners)
+
+    for corner in corners:
+        x,y = corner.ravel()
+        cv2.circle(masked_image,(x,y),5,255,-1)
  
     # imshow doesnt work on mac for some reason
-    cv2.imshow('frame',res)
+    cv2.imshow('frame',masked_image)
     # plt.imshow(gray)
     # plt.show()
 
