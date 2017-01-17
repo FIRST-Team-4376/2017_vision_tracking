@@ -8,9 +8,11 @@ from matplotlib import pyplot as plt
 # hsv_min = cv2.cvtColor(rgb_min_blue,cv2.COLOR_BGR2HSV)
 
 # green tape
-hsv_min = np.array([40,40,10])
-hsv_max = np.array([120,255,255])
 
+def nothing(x):
+    pass
+hmin = 40
+hmax = 150
 #blue
 # hsv_min = np.array([110,50,50])
 # hsv_max = np.array([130,255,255])
@@ -18,6 +20,9 @@ hsv_max = np.array([120,255,255])
 
 cap = cv2.VideoCapture(1)
 while(True):
+
+    hsv_min = np.array([hmin,40,150])
+    hsv_max = np.array([hmax,255,260])
     ret, img = cap.read()
     # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -28,7 +33,7 @@ while(True):
 
     gray = cv2.cvtColor(masked_image,cv2.COLOR_BGR2GRAY)
     gray = np.float32(gray)
-    corners = cv2.goodFeaturesToTrack(gray, 100, 0.10, 10)
+    corners = cv2.goodFeaturesToTrack(gray, 100, 0.01, 100)
     if corners is None:
         print("no corners!")
     else:
@@ -41,6 +46,9 @@ while(True):
     cv2.imshow('frame',masked_image)
     # plt.imshow(gray)
     # plt.show()
+    cv2.createTrackbar('Hmin','frame', hmin, 255, nothing)
+    hmin = cv2.getTrackbarPos ('Hmin', 'frame')
+    print(hmin)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
