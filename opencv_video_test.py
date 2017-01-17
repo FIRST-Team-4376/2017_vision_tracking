@@ -49,6 +49,9 @@ while(True):
     cv2.createTrackbar('Hmin','frame', hmin, 255, nothing)
     hmin = cv2.getTrackbarPos ('Hmin', 'frame')
     print(hmin)
+    cv2.createTrackbar('Hmax','frame', hmax, 255, nothing)
+    hmax = cv2.getTrackbarPos ('Hmax', 'frame')
+    print(hmax)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
