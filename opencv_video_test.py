@@ -28,21 +28,30 @@ while(True):
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     mask = cv2.inRange(hsv_img, hsv_min, hsv_max)
+    greyscale_image = mask
 
     masked_image = cv2.bitwise_and(img,img, mask= mask)
 
     gray = cv2.cvtColor(masked_image,cv2.COLOR_BGR2GRAY)
     gray = np.float32(gray)
-    corners = cv2.goodFeaturesToTrack(gray, 100, 0.01, 100)
+    corners = cv2.goodFeaturesToTrack(gray, 100, .35, 15)
     if corners is None:
         print("no corners!")
     else:
         corners = np.int0(corners)
         for corner in corners:
             x,y = corner.ravel()
-            cv2.circle(masked_image,(x,y),5,255,-1)
- 
+            # cv2.circle(masked_image,(x,y),5,255,-1)
+
+    ret2, thresh = cv2.threshold(greyscale_image, 40,40,150)
+    im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(masked_image, contours, -1, (0,255,0), 3)
+
+
     # imshow doesnt work on mac for some reason
+
+    # cv2.rectangle(masked_image,(15,20),(70, 50), ( 0, 55, 255), 2)
+
     cv2.imshow('frame',masked_image)
     # plt.imshow(gray)
     # plt.show()
