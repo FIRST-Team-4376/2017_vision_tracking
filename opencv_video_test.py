@@ -39,6 +39,9 @@ cv2.createTrackbar('CountoursArg1','controls', contours_arg_1, 25, nothing)
 cv2.createTrackbar('CountoursArg3','controls', contours_arg_3, 25, nothing)
 
 
+# !!! USEFUL !!!
+# http://www.pyimagesearch.com/2016/02/08/opencv-shape-detection/
+
 cap = cv2.VideoCapture(0)
 # ret, img = cap.read()
 # small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
