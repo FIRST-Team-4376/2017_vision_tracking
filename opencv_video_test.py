@@ -11,6 +11,20 @@ import cv2
 
 def nothing(x):
     pass
+
+
+def detect_rectangle(contours, approximation_value, image_to_draw_on):
+    for found_contour in contours:
+        perimeter = approximation_value * cv2.arcLength(found_contour, True)
+        approx = cv2.approxPolyDP(found_contour, perimeter, True)
+        cv2.drawContours(masked_image, [approx], -1, (255,0,0), 4)
+        if len(approx) == 4:
+            x,y,w,h = cv2.boundingRect(approx)
+            cv2.rectangle(image_to_draw_on,(x,y),(x+w,y+h),(0,0,255),4)
+            # break
+
+
+
 hmin = 40
 hmax = 150
 
@@ -19,6 +33,9 @@ smax = 255
 
 vmin = 150
 vmax = 255
+
+selected_approx_value = 4
+blur_factor = 5
 
 #blue
 # hsv_min = np.array([110,50,50])
@@ -29,6 +46,8 @@ contours_arg_1 = 0
 contours_arg_3 = 3
 
 cv2.namedWindow("controls", cv2.WINDOW_NORMAL | cv2.WINDOW_OPENGL)
+cv2.createTrackbar('approx_value','controls', selected_approx_value, 100, nothing)
+cv2.createTrackbar('blur_factor','controls', blur_factor, 50, nothing)
 cv2.createTrackbar('Hmin','controls', hmin, 255, nothing)
 cv2.createTrackbar('Hmax','controls', hmax, 255, nothing)
 cv2.createTrackbar('Smin','controls', smin, 255, nothing)
@@ -41,6 +60,8 @@ cv2.createTrackbar('CountoursArg3','controls', contours_arg_3, 25, nothing)
 
 # !!! USEFUL !!!
 # http://www.pyimagesearch.com/2016/02/08/opencv-shape-detection/
+# http://math.stackexchange.com/questions/780821/calculate-height-of-rectangle-in-perspective
+# http://math.stackexchange.com/questions/1339924/compute-ratio-of-a-rectangle-seen-from-an-unknown-perspective
 
 cap = cv2.VideoCapture(0)
 # ret, img = cap.read()
@@ -56,6 +77,9 @@ while(True):
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     mask = cv2.inRange(hsv_img, hsv_min, hsv_max)
+    while (blur_factor % 2 != 1):
+        blur_factor += 1
+    mask = cv2.medianBlur(mask,blur_factor)
     # greyscale_image = mask
 
     masked_image = cv2.bitwise_and(img,img, mask= mask)
@@ -72,9 +96,10 @@ while(True):
     #         cv2.circle(masked_image,(x,y),5,255,-1)
 
     ret2, thresh = cv2.threshold(mask, 40,40,150)
-    im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    adaptive_thresh = cv2.adaptiveThreshold(mask, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 3, 0)
+    im2, contours, hierarchy = cv2.findContours(adaptive_thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(masked_image, contours, contours_arg_1 - 1, (0,255,0), contours_arg_3)
-
+    detect_rectangle(contours, selected_approx_value / 1000.0, masked_image)
 
     # imshow doesnt work on mac for some reason
 
@@ -96,6 +121,9 @@ while(True):
     vmax = cv2.getTrackbarPos ('Vmax', 'controls')
     contours_arg_1 = cv2.getTrackbarPos ('CountoursArg1', 'controls')
     contours_arg_3 = cv2.getTrackbarPos ('CountoursArg3', 'controls')
+    selected_approx_value = cv2.getTrackbarPos ('approx_value', 'controls')
+    blur_factor = cv2.getTrackbarPos ('blur_factor', 'controls')
+    # approx_value = selected_approx_value / 100
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
