@@ -52,7 +52,7 @@ while(True):
     while (blur_factor % 2 != 1):
         blur_factor += 1
     mask = cv2.medianBlur(mask,blur_factor)
-    # greyscale_image = mask
+    greyscale_image = mask
 
     masked_image = cv2.bitwise_and(img,img, mask= mask)
 
