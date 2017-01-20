@@ -50,6 +50,10 @@ cv2.createTrackbar('Vmax','controls', vmax, 255, nothing)
 
 
 cap = cv2.VideoCapture(1)
+ret, img = cap.read()
+small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
+cv2.imshow('controls',small)
+
 while(True):
 
     hsv_min = np.array([hmin,40,150])
@@ -77,7 +81,11 @@ while(True):
     # cv2.rectangle(masked_image,(15,20),(70, 50), ( 0, 55, 255), 2)
 
     small = cv2.resize(masked_image, (0,0), fx=0.5, fy=0.5)
+    small2 = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
+    small3 = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
     cv2.imshow('frame',small)
+    # cv2.imshow('frame2',small2)
+    # cv2.imshow('frame3',small3)
 
     blur_factor = cv2.getTrackbarPos ('blur_factor', 'controls')
     hmin = cv2.getTrackbarPos ('Hmin', 'controls')
