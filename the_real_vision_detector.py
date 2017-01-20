@@ -11,6 +11,16 @@ from matplotlib import pyplot as plt
 
 def nothing(x):
     pass
+
+def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
+    for found_contour in contours:
+        epsilon = approximation_value * cv2.arcLength(found_contour, True)
+        approx = cv2.approxPolyDP(found_contour, epsilon, True)
+        cv2.drawContours(image_to_draw_on, [approx], -1, (255,0,0), 4)
+        if len(approx) == 4:
+            x,y,w,h = cv2.boundingRect(approx)
+            # cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
+        cv2
 hmin = 40
 hmax = 150
 #blue
@@ -39,7 +49,7 @@ cv2.createTrackbar('Vmin','controls', vmin, 255, nothing)
 cv2.createTrackbar('Vmax','controls', vmax, 255, nothing)
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 while(True):
 
     hsv_min = np.array([hmin,40,150])
@@ -59,6 +69,7 @@ while(True):
     ret2, thresh = cv2.threshold(greyscale_image, 40,40,150)
     im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(masked_image, contours, -1, (0,255,0), 3)
+    draw_bounding_rectangle(masked_image, contours, .010)
 
 
     # imshow doesnt work on mac for some reason
