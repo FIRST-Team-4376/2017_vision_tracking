@@ -3,7 +3,7 @@ from __future__ import print_function
 import cv2
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 while(True):
     # load the image and convert it to grayscale
     ret, img = cap.read()

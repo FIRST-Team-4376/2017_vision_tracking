@@ -11,20 +11,62 @@ import cv2
 def nothing(x):
     pass
 
+
+def width_and_height_from_contour(contour, image_to_draw_on, approximation_value):
+    epsilon = approximation_value * cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, epsilon, True)
+    x,y,w,h = cv2.boundingRect(approx)
+    # cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
+    return [w, h]
+
+
+
+
+
 def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
-    target_contour = contours[0]
+
+    the_thing_we_want = contours[0]
+    lowest_difference = 99999999999999999999999
+
     for found_contour in contours:
+        width_and_height = width_and_height_from_contour(found_contour, image_to_draw_on, approximation_value)
 
-        if cv2.contourArea(found_contour) > cv2.contourArea(target_contour):
-            target_contour = found_contour
-        epsilon = approximation_value * cv2.arcLength(found_contour, True)
-        approx = cv2.approxPolyDP(found_contour, epsilon, True)
-        #cv2.drawContours(image_to_draw_on, [approx], -1, (255,0,0), 4)
-        if len(approx) == 4:
-            x,y,w,h = cv2.boundingRect(approx)
-            # cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
+        difference = abs((width_and_height[0] / width_and_height[1]) - (2 / 5))
+        if difference < lowest_difference:
+            lowest_difference = difference
+            the_thing_we_want = found_contour
 
-    cv2.drawContours(image_to_draw_on, [found_contour], -1, (0,255,0), 4) 
+
+
+    epsilon = approximation_value * cv2.arcLength(the_thing_we_want, True)
+    approx = cv2.approxPolyDP(the_thing_we_want, epsilon, True)
+    x,y,w,h = cv2.boundingRect(approx)
+    cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
+
+    print "width: "
+    print width_and_height_from_contour(the_thing_we_want, image_to_draw_on, approximation_value)[0]
+    print "height: "
+    print width_and_height_from_contour(the_thing_we_want, image_to_draw_on, approximation_value)[1]
+
+    # largest_contour = contours[0]
+    # for found_contour in contours:
+
+    #     if cv2.contourArea(found_contour) < cv2.contourArea(largest_contour):
+    #         largest_contour = found_contour
+
+
+
+    # print cv2.contourArea(largest_contour)
+    # epsilon = approximation_value * cv2.arcLength(largest_contour, True)
+    # approx = cv2.approxPolyDP(largest_contour, epsilon, True)
+    # # cv2.drawContours(image_to_draw_on, [approx], -1, (255,0,0), 4)
+    # if len(approx) == 4:
+    #     x,y,w,h = cv2.boundingRect(approx)
+    #     cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
+
+
+
+    # cv2.drawContours(image_to_draw_on, [found_contour], -1, (0,255,0), 4) 
 
 hmin = 40
 hmax = 150
@@ -42,7 +84,7 @@ smax = 255
 vmin = 150
 vmax = 255
 
-blur_factor = 5
+blur_factor = 25
 
 cv2.namedWindow("controls", cv2.WINDOW_NORMAL)
 cv2.createTrackbar('blur_factor','controls', blur_factor, 50, nothing)
@@ -54,7 +96,7 @@ cv2.createTrackbar('Vmin','controls', vmin, 255, nothing)
 cv2.createTrackbar('Vmax','controls', vmax, 255, nothing)
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 ret, img = cap.read()
 small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 cv2.imshow('controls',small)
