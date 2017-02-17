@@ -43,10 +43,10 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
     if len(differences_with_contours) > 1:
         for arr in [differences_with_contours[0], differences_with_contours[1]]:
     # for arr in differences_with_contours:
-        epsilon = approximation_value * cv2.arcLength(arr[1], True)
-        approx = cv2.approxPolyDP(arr[1], epsilon, True)
-        x,y,w,h = cv2.boundingRect(approx)
-        cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
+          epsilon = approximation_value * cv2.arcLength(arr[1], True)
+          approx = cv2.approxPolyDP(arr[1], epsilon, True)
+          x,y,w,h = cv2.boundingRect(approx)
+          cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
 
     print "width: "
     print width_and_height_from_contour(the_thing_we_want, image_to_draw_on, approximation_value)[0]
