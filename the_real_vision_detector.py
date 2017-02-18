@@ -36,10 +36,9 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 			width_height_ratio = (width_and_height[0] / width_and_height[1])
 			target_ratio = (2.0 / 5.0)
 			difference = abs( width_height_ratio - target_ratio )
-			if difference <= 0.25 and width_and_height[0] >= 30:
-				print "difference"
-				print difference
-				differences_with_contours.append([difference, found_contour, width_height_ratio])
+			print "difference"
+			print difference
+			differences_with_contours.append([difference, found_contour, width_height_ratio])
 
 	differences_with_contours = sorted(differences_with_contours, key=lambda x: cv2.contourArea(x[1])) # sort by contour area
 	# differences_with_contours = sorted(differences_with_contours, key=lambda x: x[0]) # sort by closeness to 2/5 width/height ratio
@@ -116,7 +115,7 @@ cv2.createTrackbar('approx_value_divisor','controls', approx_value_divisor, 10, 
 cv2.createTrackbar('approx_value','controls', approx_value, 255, nothing)
 
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 ret, img = cap.read()
 small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 cv2.imshow('controls',small)
