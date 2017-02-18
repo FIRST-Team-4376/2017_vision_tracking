@@ -29,6 +29,8 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 
 	differences_with_contours = []
 
+	cv2.drawContours(image_to_draw_on, contours, -1, (0,255,0), 4)
+
 	for found_contour in contours:
 		width_and_height = width_and_height_from_contour(found_contour, approximation_value)
 
@@ -136,7 +138,7 @@ while(True):
 
 	masked_image = cv2.bitwise_and(img,img, mask= mask)
 
-	ret2, thresh = cv2.threshold(greyscale_image, 40,40,150)
+	ret2, thresh = cv2.threshold(mask, 150,255,cv2.THRESH_BINARY)
 	im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	#cv2.drawContours(masked_image, contours, -1, (0,255,0), 3)
 	final_approx_value = float(approx_value) / pow(10.0, approx_value_divisor)
@@ -146,19 +148,20 @@ while(True):
 	print approx_value_divisor
 	print "final_approx_value"
 	print final_approx_value
-	draw_bounding_rectangle(masked_image, contours, final_approx_value)
+	draw_bounding_rectangle(img, contours, final_approx_value)
 
 
 	# imshow doesnt work on mac for some reason
 
 	# cv2.rectangle(masked_image,(15,20),(70, 50), ( 0, 55, 255), 2)
 
-	small = cv2.resize(masked_image, (0,0), fx=0.5, fy=0.5)
-	small2 = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
-	small3 = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
+	small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
+	#small2 = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
+	#small3 = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
+	small_thresh = cv2.resize(thresh, (0,0), fx=0.5, fy=0.5)
 	cv2.imshow('frame',small)
 	# cv2.imshow('frame2',small2)
-	# cv2.imshow('frame3',small3)
+	cv2.imshow('frame3',small_thresh)
 
 	blur_factor = cv2.getTrackbarPos ('blur_factor', 'controls')
 	hmin = cv2.getTrackbarPos ('Hmin', 'controls')
