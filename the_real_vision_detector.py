@@ -12,12 +12,11 @@ def nothing(x):
 	pass
 
 
-def width_and_height_from_contour(contour, image_to_draw_on, approximation_value):
+def width_and_height_from_contour(contour, approximation_value):
 	epsilon = approximation_value * cv2.arcLength(contour, True)
 	approx = cv2.approxPolyDP(contour, epsilon, True)
 	x,y,w,h = cv2.boundingRect(approx)
-	# cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
-	return [w, h]
+	return [float(w), float(h)]
 
 
 
@@ -31,27 +30,38 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 	differences_with_contours = []
 
 	for found_contour in contours:
-		width_and_height = width_and_height_from_contour(found_contour, image_to_draw_on, approximation_value)
+		width_and_height = width_and_height_from_contour(found_contour, approximation_value)
 
-		difference = abs((width_and_height[0] / width_and_height[1]) - (2 / 5))
-		differences_with_contours.append([difference, found_contour])
+		if width_and_height[0] < width_and_height[1]:
+			width_height_ratio = (width_and_height[0] / width_and_height[1])
+			target_ratio = (2.0 / 5.0)
+			difference = abs( width_height_ratio - target_ratio )
+			if difference <= 0.25 and width_and_height[0] >= 30:
+				print "difference"
+				print difference
+				differences_with_contours.append([difference, found_contour, width_height_ratio])
 
-	differences_with_contours = sorted(differences_with_contours, key=lambda x: x[0])
+	differences_with_contours = sorted(differences_with_contours, key=lambda x: cv2.contourArea(x[1])) # sort by contour area
+	# differences_with_contours = sorted(differences_with_contours, key=lambda x: x[0]) # sort by closeness to 2/5 width/height ratio
 	# print "differences_with_contours"
 	# print differences_with_contours
 
 	if len(differences_with_contours) > 1:
 		for arr in [differences_with_contours[0], differences_with_contours[1]]:
 	# for arr in differences_with_contours:
-		  epsilon = approximation_value * cv2.arcLength(arr[1], True)
-		  approx = cv2.approxPolyDP(arr[1], epsilon, True)
-		  x,y,w,h = cv2.boundingRect(approx)
-		  cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
+			epsilon = approximation_value * cv2.arcLength(arr[1], True)
+			approx = cv2.approxPolyDP(arr[1], epsilon, True)
+			x,y,w,h = cv2.boundingRect(approx)
+			cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
+			font = cv2.FONT_HERSHEY_SIMPLEX
+			cv2.putText(image_to_draw_on, repr(arr[2]), (x+w+5,y), font, 1,(255,255,255),2)
+			cv2.putText(image_to_draw_on, repr(arr[0]), (x+w+5,y+50), font, 1,(255,255,255),2)
+			cv2.putText(image_to_draw_on, repr(w) + ", " + repr(h), (x+w+5,int(y+(h/2.0))), font, 1,(255,255,255),2)
 
 	print "width: "
-	print width_and_height_from_contour(the_thing_we_want, image_to_draw_on, approximation_value)[0]
+	print width_and_height_from_contour(the_thing_we_want, approximation_value)[0]
 	print "height: "
-	print width_and_height_from_contour(the_thing_we_want, image_to_draw_on, approximation_value)[1]
+	print width_and_height_from_contour(the_thing_we_want, approximation_value)[1]
 
 	# largest_contour = contours[0]
 	# for found_contour in contours:
@@ -91,6 +101,9 @@ vmax = 255
 
 blur_factor = 25
 
+approx_value_divisor = 2
+approx_value = 1
+
 cv2.namedWindow("controls", cv2.WINDOW_NORMAL)
 cv2.createTrackbar('blur_factor','controls', blur_factor, 50, nothing)
 cv2.createTrackbar('Hmin','controls', hmin, 255, nothing)
@@ -99,6 +112,8 @@ cv2.createTrackbar('Smin','controls', smin, 255, nothing)
 cv2.createTrackbar('Smax','controls', smax, 255, nothing)
 cv2.createTrackbar('Vmin','controls', vmin, 255, nothing)
 cv2.createTrackbar('Vmax','controls', vmax, 255, nothing)
+cv2.createTrackbar('approx_value_divisor','controls', approx_value_divisor, 10, nothing)
+cv2.createTrackbar('approx_value','controls', approx_value, 255, nothing)
 
 
 cap = cv2.VideoCapture(1)
@@ -125,7 +140,14 @@ while(True):
 	ret2, thresh = cv2.threshold(greyscale_image, 40,40,150)
 	im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	#cv2.drawContours(masked_image, contours, -1, (0,255,0), 3)
-	draw_bounding_rectangle(masked_image, contours, .010)
+	final_approx_value = float(approx_value) / pow(10.0, approx_value_divisor)
+	print "approx_value"
+	print approx_value
+	print "approx_value_divisor"
+	print approx_value_divisor
+	print "final_approx_value"
+	print final_approx_value
+	draw_bounding_rectangle(masked_image, contours, final_approx_value)
 
 
 	# imshow doesnt work on mac for some reason
@@ -146,6 +168,8 @@ while(True):
 	smax = cv2.getTrackbarPos ('Smax', 'controls')
 	vmin = cv2.getTrackbarPos ('Vmin', 'controls')
 	vmax = cv2.getTrackbarPos ('Vmax', 'controls')
+	approx_value_divisor = cv2.getTrackbarPos ('approx_value_divisor', 'controls')
+	approx_value = cv2.getTrackbarPos ('approx_value', 'controls')
 
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
