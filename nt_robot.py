@@ -22,7 +22,11 @@ from networktables import NetworkTables
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+NetworkTables.initialize(server='roborio-4376-frc.local');
 sd = NetworkTables.getTable("SmartDashboard")
+# sd.setIPAddress("roboRio-4376-FRC.local");
+# sd.setClientMode();
+# sd.initialize();
 
 i = 0
 while True:
