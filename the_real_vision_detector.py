@@ -12,57 +12,128 @@ def nothing(x):
 	pass
 
 
+def find_closest_value(target_value, list_of_values):
+	closest_value = None
+	for val in list_of_values:
+		if closest_value is None:
+			closest_value = val
+		else:
+			new_difference = abs(val - target_value)
+			if new_difference < abs(closest_value - target_value):
+				closest_value = val
+	return closest_value
+
+
 def width_and_height_from_contour(contour, approximation_value):
 	epsilon = approximation_value * cv2.arcLength(contour, True)
 	approx = cv2.approxPolyDP(contour, epsilon, True)
 	x,y,w,h = cv2.boundingRect(approx)
 	return [float(w), float(h)]
 
+def bounding_rectangle_coords_for_contour(contour, approximation_value):
+	epsilon = approximation_value * cv2.arcLength(contour, True)
+	approx = cv2.approxPolyDP(contour, epsilon, True)
+	x,y,w,h = cv2.boundingRect(approx)
+	return {'x': x, 'y': y, 'width': w, 'height': h}
+
+def width_height_ratio_pct_difference(width, height):
+	target_ratio = (2.0 / 5.0)
+	actual_ratio = (float(width) / float(height))
+	result = abs( (actual_ratio - target_ratio) / target_ratio )
+	if result > 1.0:
+		return .999999999
+	else:
+		return result
+
+def top_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_check_against, image_height):
+	if len(bounding_rectangles_to_check_against) < 2:
+		return 0.0
+	else:
+		removed_self_from_calculations = False
+		top_edge_height_differences = []
+		for rect_coords in bounding_rectangles_to_check_against:
+			if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
+				print "removing self!"
+				removed_self_from_calculations = True
+			else:
+				top_edge_height_differences.append( abs(rect_coords_to_score['y'] - rect_coords['y']) )
+
+		closest_value = find_closest_value(0.0, top_edge_height_differences)
+		pct = float(closest_value) / float(image_height)
+		return 1.0 - pct
 
 
 
 
 def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
-
-	the_thing_we_want = contours[0]
-	lowest_difference = 99999999999999999999999
+	# height, width = img.shape[:2]
+	image_height, image_width = image_to_draw_on.shape[:2]
 
 	differences_with_contours = []
+	rects_with_scores = []
+	bounding_rectangles_for_contours = []
+	for found_contour in contours:
+		bounding_rectangles_for_contours.append(bounding_rectangle_coords_for_contour(found_contour, approximation_value))
 
 	cv2.drawContours(image_to_draw_on, contours, -1, (0,255,0), 4)
 
-	for found_contour in contours:
-		width_and_height = width_and_height_from_contour(found_contour, approximation_value)
+	for bounding_rect_coords in bounding_rectangles_for_contours:
+		x = bounding_rect_coords['x']
+		y = bounding_rect_coords['y']
+		width = bounding_rect_coords['width']
+		height = bounding_rect_coords['height']
 
-		if width_and_height[0] < width_and_height[1]:
-			width_height_ratio = (width_and_height[0] / width_and_height[1])
-			target_ratio = (2.0 / 5.0)
-			difference = abs( width_height_ratio - target_ratio )
-			print "difference"
-			print difference
-			differences_with_contours.append([difference, found_contour, width_height_ratio])
+		if width < height:
+			width_height_ratio_score = 1.0 - width_height_ratio_pct_difference(width, height)
+			top_edge_score = top_edge_same_height_score(bounding_rect_coords, bounding_rectangles_for_contours, image_height)
+			total_score = width_height_ratio_score + top_edge_score
+			rects_with_scores.append([bounding_rect_coords, total_score, width_height_ratio_score, top_edge_score])
 
-	differences_with_contours = sorted(differences_with_contours, key=lambda x: cv2.contourArea(x[1])) # sort by contour area
+
+	# for found_contour in contours:
+	# 	bounding_rect_coords = bounding_rectangle_coords_for_contour(contour, approximation_value)
+	# 	x = bounding_rect_coords['x']
+	# 	y = bounding_rect_coords['y']
+	# 	width = bounding_rect_coords['width']
+	# 	height = bounding_rect_coords['height']
+
+	# 	width_height_ratio_score = 1.0 - width_height_ratio_pct_difference(width, height)
+
+	# 	if width < height
+	# 		width_height_ratio = (width / height)
+	# 		target_ratio = (2.0 / 5.0)
+	# 		difference = abs( width_height_ratio - target_ratio )
+	# 		differences_with_contours.append([difference, found_contour, width_height_ratio])
+
+	rects_with_scores = sorted(rects_with_scores, key=lambda x: x[1], reverse=True)
+
+	for rect_and_score in rects_with_scores:
+		rect = rect_and_score[0]
+		score = rect_and_score[1]
+		width_height_ratio_score = rect_and_score[2]
+		top_edge_score = rect_and_score[3]
+
+		if score == rects_with_scores[0][1]:
+			cv2.rectangle(image_to_draw_on,(rect['x'],rect['y']),(rect['x']+rect['width'], rect['y']+rect['height']), (255,0,0), 4)
+		else:
+			cv2.rectangle(image_to_draw_on,(rect['x'],rect['y']),(rect['x']+rect['width'], rect['y']+rect['height']), (0,0,255), 4)
+		cv2.putText(image_to_draw_on, repr(score), (rect['x']+rect['width']+5, rect['y']), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
+		cv2.putText(image_to_draw_on, repr(width_height_ratio_score), (rect['x']+rect['width']+5, rect['y']+50), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
+		cv2.putText(image_to_draw_on, repr(top_edge_score), (rect['x']+rect['width']+5, rect['y']+100), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
+	# differences_with_contours = sorted(differences_with_contours, key=lambda x: cv2.contourArea(x[1])) # sort by contour area
 	# differences_with_contours = sorted(differences_with_contours, key=lambda x: x[0]) # sort by closeness to 2/5 width/height ratio
-	# print "differences_with_contours"
-	# print differences_with_contours
 
-	if len(differences_with_contours) > 1:
-		for arr in [differences_with_contours[0], differences_with_contours[1]]:
-	# for arr in differences_with_contours:
-			epsilon = approximation_value * cv2.arcLength(arr[1], True)
-			approx = cv2.approxPolyDP(arr[1], epsilon, True)
-			x,y,w,h = cv2.boundingRect(approx)
-			cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
-			font = cv2.FONT_HERSHEY_SIMPLEX
-			cv2.putText(image_to_draw_on, repr(arr[2]), (x+w+5,y), font, 1,(255,255,255),2)
-			cv2.putText(image_to_draw_on, repr(arr[0]), (x+w+5,y+50), font, 1,(255,255,255),2)
-			cv2.putText(image_to_draw_on, repr(w) + ", " + repr(h), (x+w+5,int(y+(h/2.0))), font, 1,(255,255,255),2)
-
-	print "width: "
-	print width_and_height_from_contour(the_thing_we_want, approximation_value)[0]
-	print "height: "
-	print width_and_height_from_contour(the_thing_we_want, approximation_value)[1]
+	# if len(differences_with_contours) > 1:
+	# 	for arr in [differences_with_contours[0], differences_with_contours[1]]:
+	# # for arr in differences_with_contours:
+	# 		epsilon = approximation_value * cv2.arcLength(arr[1], True)
+	# 		approx = cv2.approxPolyDP(arr[1], epsilon, True)
+	# 		x,y,w,h = cv2.boundingRect(approx)
+	# 		cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
+	# 		font = cv2.FONT_HERSHEY_SIMPLEX
+	# 		cv2.putText(image_to_draw_on, repr(arr[2]), (x+w+5,y), font, 1,(255,255,255),2)
+	# 		cv2.putText(image_to_draw_on, repr(arr[0]), (x+w+5,y+50), font, 1,(255,255,255),2)
+	# 		cv2.putText(image_to_draw_on, repr(w) + ", " + repr(h), (x+w+5,int(y+(h/2.0))), font, 1,(255,255,255),2)
 
 	# largest_contour = contours[0]
 	# for found_contour in contours:
@@ -117,7 +188,7 @@ cv2.createTrackbar('approx_value_divisor','controls', approx_value_divisor, 10, 
 cv2.createTrackbar('approx_value','controls', approx_value, 255, nothing)
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 ret, img = cap.read()
 small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 cv2.imshow('controls',small)
