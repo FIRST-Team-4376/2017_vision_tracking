@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from networktables import NetworkTables
 
 # rgb_min_blue = np.uint8([[[27, 60, 40]]])
 # rgb_max_blue = np.uint8([[[81,255,120 ]]])
@@ -66,18 +67,26 @@ def top_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_chec
 
 
 def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
+	contour_centers = []
 	# height, width = img.shape[:2]
 	image_height, image_width = image_to_draw_on.shape[:2]
 
 	differences_with_contours = []
 	rects_with_scores = []
-	bounding_rectangles_for_contours = []
+	bounding_rectangles_and_contours = []
 	for found_contour in contours:
-		bounding_rectangles_for_contours.append(bounding_rectangle_coords_for_contour(found_contour, approximation_value))
+		bounding_rectangles_and_contours.append([bounding_rectangle_coords_for_contour(found_contour, approximation_value), found_contour])
 
 	cv2.drawContours(image_to_draw_on, contours, -1, (0,255,0), 4)
 
-	for bounding_rect_coords in bounding_rectangles_for_contours:
+	all_bounding_rects = []
+	for thing in bounding_rectangles_and_contours:
+		all_bounding_rects.append(thing[0])
+
+	for bounding_rect_and_contour in bounding_rectangles_and_contours:
+
+		bounding_rect_coords = bounding_rect_and_contour[0]
+		contour = bounding_rect_and_contour[1]
 		x = bounding_rect_coords['x']
 		y = bounding_rect_coords['y']
 		width = bounding_rect_coords['width']
@@ -85,93 +94,73 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 
 		if width < height:
 			width_height_ratio_score = 1.0 - width_height_ratio_pct_difference(width, height)
-			top_edge_score = top_edge_same_height_score(bounding_rect_coords, bounding_rectangles_for_contours, image_height)
+			top_edge_score = top_edge_same_height_score(bounding_rect_coords, all_bounding_rects, image_height)
 			total_score = width_height_ratio_score + top_edge_score
-			rects_with_scores.append([bounding_rect_coords, total_score, width_height_ratio_score, top_edge_score])
-
-
-	# for found_contour in contours:
-	# 	bounding_rect_coords = bounding_rectangle_coords_for_contour(contour, approximation_value)
-	# 	x = bounding_rect_coords['x']
-	# 	y = bounding_rect_coords['y']
-	# 	width = bounding_rect_coords['width']
-	# 	height = bounding_rect_coords['height']
-
-	# 	width_height_ratio_score = 1.0 - width_height_ratio_pct_difference(width, height)
-
-	# 	if width < height
-	# 		width_height_ratio = (width / height)
-	# 		target_ratio = (2.0 / 5.0)
-	# 		difference = abs( width_height_ratio - target_ratio )
-	# 		differences_with_contours.append([difference, found_contour, width_height_ratio])
+			rects_with_scores.append([bounding_rect_coords, total_score, width_height_ratio_score, top_edge_score, contour])
 
 	rects_with_scores = sorted(rects_with_scores, key=lambda x: x[1], reverse=True)
 
-	for rect_and_score in rects_with_scores:
+	for rect_and_score in rects_with_scores[:2]:  # [:2] gets the first 2
 		rect = rect_and_score[0]
 		score = rect_and_score[1]
 		width_height_ratio_score = rect_and_score[2]
 		top_edge_score = rect_and_score[3]
+		contour = rect_and_score[4]
+
+		M = cv2.moments(contour)
+		if M["m00"] > 0:
+			cX = int(M["m10"] / M["m00"]) # center x coord
+			cY = int(M["m01"] / M["m00"]) # center y coord
+			cv2.circle(image_to_draw_on, (cX, cY), 7, (255, 0, 255), -1)
+			contour_centers.append([cX, cY])
+			# if 0 < cX < image_height and 0 < cY < image_width:
+			# 	contour_centers.append([cX, cY])
+			# 	print "THING"
+			# 	hsv = cv2.cvtColor(image_to_draw_on, cv2.COLOR_BGR2HSV)
+			# 	print hsv[cX][cY]
+			# 	cv2.putText(image_to_draw_on, repr(hsv[cX][cY]), (cX+5, cY+5), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255),2)
 
 		if score == rects_with_scores[0][1]:
 			cv2.rectangle(image_to_draw_on,(rect['x'],rect['y']),(rect['x']+rect['width'], rect['y']+rect['height']), (255,0,0), 4)
 		else:
 			cv2.rectangle(image_to_draw_on,(rect['x'],rect['y']),(rect['x']+rect['width'], rect['y']+rect['height']), (0,0,255), 4)
+
 		cv2.putText(image_to_draw_on, repr(score), (rect['x']+rect['width']+5, rect['y']), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
 		cv2.putText(image_to_draw_on, repr(width_height_ratio_score), (rect['x']+rect['width']+5, rect['y']+50), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
 		cv2.putText(image_to_draw_on, repr(top_edge_score), (rect['x']+rect['width']+5, rect['y']+100), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
-	# differences_with_contours = sorted(differences_with_contours, key=lambda x: cv2.contourArea(x[1])) # sort by contour area
-	# differences_with_contours = sorted(differences_with_contours, key=lambda x: x[0]) # sort by closeness to 2/5 width/height ratio
-
-	# if len(differences_with_contours) > 1:
-	# 	for arr in [differences_with_contours[0], differences_with_contours[1]]:
-	# # for arr in differences_with_contours:
-	# 		epsilon = approximation_value * cv2.arcLength(arr[1], True)
-	# 		approx = cv2.approxPolyDP(arr[1], epsilon, True)
-	# 		x,y,w,h = cv2.boundingRect(approx)
-	# 		cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
-	# 		font = cv2.FONT_HERSHEY_SIMPLEX
-	# 		cv2.putText(image_to_draw_on, repr(arr[2]), (x+w+5,y), font, 1,(255,255,255),2)
-	# 		cv2.putText(image_to_draw_on, repr(arr[0]), (x+w+5,y+50), font, 1,(255,255,255),2)
-	# 		cv2.putText(image_to_draw_on, repr(w) + ", " + repr(h), (x+w+5,int(y+(h/2.0))), font, 1,(255,255,255),2)
-
-	# largest_contour = contours[0]
-	# for found_contour in contours:
-
-	#	 if cv2.contourArea(found_contour) < cv2.contourArea(largest_contour):
-	#		 largest_contour = found_contour
 
 
 
-	# print cv2.contourArea(largest_contour)
-	# epsilon = approximation_value * cv2.arcLength(largest_contour, True)
-	# approx = cv2.approxPolyDP(largest_contour, epsilon, True)
-	# # cv2.drawContours(image_to_draw_on, [approx], -1, (255,0,0), 4)
-	# if len(approx) == 4:
-	#	 x,y,w,h = cv2.boundingRect(approx)
-	#	 cv2.rectangle(image_to_draw_on,(x,y),(x+w, y+h), (0,0,255), 4)
 
 
+	if len(contour_centers) == 2:
+		left_center_x = contour_centers[0][0]
+		left_center_y = contour_centers[0][1]
+		right_center_x = contour_centers[1][0]
+		right_center_y = contour_centers[1][1]
 
-	# cv2.drawContours(image_to_draw_on, [found_contour], -1, (0,255,0), 4) 
+		overall_mid_x = (left_center_x + right_center_x) / 2
+		overall_mid_y = (left_center_y + right_center_y) / 2
+		cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
 
-hmin = 40
-hmax = 150
-#blue
-# hsv_min = np.array([110,50,50])
-# hsv_max = np.array([130,255,255])
+		sd.putNumber('leftCenterX', left_center_x)
+		sd.putNumber('leftCenterY', left_center_y)
+		sd.putNumber('rightCenterX', left_center_x)
+		sd.putNumber('rightCenterY', left_center_y)
+		sd.putNumber('overallCenterX', overall_mid_x)
+		sd.putNumber('overallCenterY', overall_mid_y)
 
 
-hmin = 40
-hmax = 150
+hmin = 60
+hmax = 90
 
-smin = 40
-smax = 255
+smin = 0
+smax = 140
 
-vmin = 150
+vmin = 240
 vmax = 255
 
-blur_factor = 25
+blur_factor = 40
 
 approx_value_divisor = 2
 approx_value = 1
@@ -188,15 +177,18 @@ cv2.createTrackbar('approx_value_divisor','controls', approx_value_divisor, 10, 
 cv2.createTrackbar('approx_value','controls', approx_value, 255, nothing)
 
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 ret, img = cap.read()
 small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 cv2.imshow('controls',small)
 
+NetworkTables.initialize(server='roborio-4376-frc.local');
+sd = NetworkTables.getTable("SmartDashboard")
+
 while(True):
 
-	hsv_min = np.array([hmin,40,150])
-	hsv_max = np.array([hmax,255,260])
+	hsv_min = np.array([hmin,smin,vmin])
+	hsv_max = np.array([hmax,smax,vmax])
 	ret, img = cap.read()
 	# gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
