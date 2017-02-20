@@ -154,16 +154,16 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 		sd.putNumber('imageHeight', image_height)
 
 
-hmin = 40
-hmax = 77
+hmin = 50
+hmax = 110
 
-smin = 0
-smax = 32
+smin = 18
+smax = 217
 
-vmin = 240
+vmin = 39
 vmax = 255
 
-blur_factor = 40
+blur_factor = 30
 
 approx_value_divisor = 2
 approx_value = 1
