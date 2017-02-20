@@ -143,19 +143,22 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 		overall_mid_y = (left_center_y + right_center_y) / 2
 		cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
 
+		# Send stuff to roboRIO
 		sd.putNumber('leftCenterX', left_center_x)
 		sd.putNumber('leftCenterY', left_center_y)
 		sd.putNumber('rightCenterX', left_center_x)
 		sd.putNumber('rightCenterY', left_center_y)
 		sd.putNumber('overallCenterX', overall_mid_x)
 		sd.putNumber('overallCenterY', overall_mid_y)
+		sd.putNumber('imageWidth', image_width)
+		sd.putNumber('imageHeight', image_height)
 
 
-hmin = 60
-hmax = 90
+hmin = 40
+hmax = 77
 
 smin = 0
-smax = 140
+smax = 32
 
 vmin = 240
 vmax = 255
