@@ -190,7 +190,6 @@ while(True):
 	hsv_min = np.array([hmin,smin,vmin])
 	hsv_max = np.array([hmax,smax,vmax])
 	ret, img = cap.read()
-	# gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 	mask = cv2.inRange(hsv_img, hsv_min, hsv_max)
@@ -205,12 +204,6 @@ while(True):
 	im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	#cv2.drawContours(masked_image, contours, -1, (0,255,0), 3)
 	final_approx_value = float(approx_value) / pow(10.0, approx_value_divisor)
-	print "approx_value"
-	print approx_value
-	print "approx_value_divisor"
-	print approx_value_divisor
-	print "final_approx_value"
-	print final_approx_value
 	draw_bounding_rectangle(img, contours, final_approx_value)
 
 
