@@ -54,7 +54,6 @@ def top_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_chec
 		top_edge_height_differences = []
 		for rect_coords in bounding_rectangles_to_check_against:
 			if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
-				print "removing self!"
 				removed_self_from_calculations = True
 			else:
 				top_edge_height_differences.append( abs(rect_coords_to_score['y'] - rect_coords['y']) )
