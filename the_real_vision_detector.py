@@ -62,6 +62,22 @@ def top_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_chec
 		pct = float(closest_value) / float(image_height)
 		return 1.0 - pct
 
+def bottom_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_check_against, image_height):
+	if len(bounding_rectangles_to_check_against) < 2:
+		return 0.0
+	else:
+		removed_self_from_calculations = False
+		top_edge_height_differences = []
+		for rect_coords in bounding_rectangles_to_check_against:
+			if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
+				removed_self_from_calculations = True
+			else:
+				top_edge_height_differences.append( abs((rect_coords_to_score['y'] + rect_coords_to_score['height']) - (rect_coords['y'] + rect_coords['height'])) )
+
+		closest_value = find_closest_value(0.0, top_edge_height_differences)
+		pct = float(closest_value) / float(image_height)
+		return 1.0 - pct
+
 
 
 
@@ -94,7 +110,8 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 		if width < height:
 			width_height_ratio_score = 1.0 - width_height_ratio_pct_difference(width, height)
 			top_edge_score = top_edge_same_height_score(bounding_rect_coords, all_bounding_rects, image_height)
-			total_score = width_height_ratio_score + top_edge_score
+			bottom_edge_score = bottom_edge_same_height_score(bounding_rect_coords, all_bounding_rects, image_height)
+			total_score = width_height_ratio_score + top_edge_score + bottom_edge_score
 			rects_with_scores.append([bounding_rect_coords, total_score, width_height_ratio_score, top_edge_score, contour])
 
 	rects_with_scores = sorted(rects_with_scores, key=lambda x: x[1], reverse=True)
@@ -111,7 +128,7 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 			cX = int(M["m10"] / M["m00"]) # center x coord
 			cY = int(M["m01"] / M["m00"]) # center y coord
 			cv2.circle(image_to_draw_on, (cX, cY), 7, (255, 0, 255), -1)
-			contour_centers.append([cX, cY])
+			contour_centers.append([cX, cY, score])
 			# if 0 < cX < image_height and 0 < cY < image_width:
 			# 	contour_centers.append([cX, cY])
 			# 	print "THING"
@@ -133,10 +150,20 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 
 
 	if len(contour_centers) == 2:
-		left_center_x = contour_centers[0][0]
-		left_center_y = contour_centers[0][1]
-		right_center_x = contour_centers[1][0]
-		right_center_y = contour_centers[1][1]
+
+		if contour_centers[0][0] < contour_centers[1][0]:
+			left_contour = contour_centers[0]
+			right_contour = contour_centers[1]
+		else:
+			right_contour = contour_centers[0]
+			left_contour = contour_centers[1]
+
+		sd.putNumber('overallScoreLeft', left_contour[2])
+		sd.putNumber('overallScoreRight', right_contour[2])
+		left_center_x = left_contour[0]
+		left_center_y = left_contour[1]
+		right_center_x = right_contour[0]
+		right_center_y = right_contour[1]
 
 		overall_mid_x = (left_center_x + right_center_x) / 2
 		overall_mid_y = (left_center_y + right_center_y) / 2
@@ -152,17 +179,20 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 		sd.putNumber('imageWidth', image_width)
 		sd.putNumber('imageHeight', image_height)
 
+#############################################################################
 
-hmin = 50
-hmax = 110
+hmin = 17
+hmax = 154
 
-smin = 18
-smax = 217
+smin = 0
+smax = 44
 
-vmin = 39
+vmin = 249
 vmax = 255
 
-blur_factor = 30
+blur_factor = 33
+
+#############################################################################
 
 approx_value_divisor = 2
 approx_value = 1
@@ -189,9 +219,28 @@ sd = NetworkTables.getTable("SmartDashboard")
 
 while(True):
 
+	# print "################################"
+	# print hmin
+	# print hmax
+	# print "---"
+	# print smin
+	# print smax
+	# print "---"
+	# print vmin
+	# print vmax
+	# print "---"
+	# print blur_factor
+	# print "=========================================="
+
 	hsv_min = np.array([hmin,smin,vmin])
 	hsv_max = np.array([hmax,smax,vmax])
 	ret, img = cap.read()
+
+	(h, w) = img.shape[:2]
+	center = (w / 2, h / 2)
+	M2 = cv2.getRotationMatrix2D(center, 180, 1.0)
+	img = cv2.warpAffine(img, M2, (w, h))
+
 	hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 	mask = cv2.inRange(hsv_img, hsv_min, hsv_max)
@@ -216,10 +265,10 @@ while(True):
 	small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 	#small2 = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 	#small3 = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
-	small_thresh = cv2.resize(thresh, (0,0), fx=0.5, fy=0.5)
+	# small_thresh = cv2.resize(thresh, (0,0), fx=0.5, fy=0.5)
 	cv2.imshow('frame',small)
 	# cv2.imshow('frame2',small2)
-	cv2.imshow('frame3',small_thresh)
+	# cv2.imshow('frame3',small_thresh)
 
 	blur_factor = cv2.getTrackbarPos ('blur_factor', 'controls')
 	hmin = cv2.getTrackbarPos ('Hmin', 'controls')
@@ -236,3 +285,4 @@ while(True):
 
 cap.release()
 cv2.destroyAllWindows()
+
