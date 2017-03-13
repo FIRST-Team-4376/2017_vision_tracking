@@ -49,32 +49,33 @@ def width_height_ratio_pct_difference(width, height):
 
 ############# NOT DONE
 def horizontal_distance_from_other_rect_score(rect_coords_to_score, bounding_rectangles_to_check_against):
-	if len(bounding_rectangles_to_check_against) < 2:
-		return 0.0
-	else:
-		removed_self_from_calculations = False
-		distance_differences = []
-		for rect_coords in bounding_rectangles_to_check_against:
-			if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
-				removed_self_from_calculations = True
-			else:
-				if rect_coords_to_score['x'] < rect_coords['x']:
-					left_side_right_edge = rect_coords_to_score['x'] + rect_coords_to_score['width']
-					right_side_left_edge = rect_coords['x']
-				else:
-					left_side_right_edge = float(rect_coords['x'] + rect_coords['width'])
-					right_side_left_edge = float(rect_coords_to_score['x'])
-				if left_side_right_edge > right_side_left_edge:
-					return 0.0
-				else:
-					best_top_width = [rect_coords['width'], rect_coords_to_score['width']]
-					pct_diff = abs(( ((right_side_left_edge - left_side_right_edge) / rect_coords_to_score['width']) / 3.125))
-					print "pct diff"
-					print pct_diff
-					if pct_diff < 1.0:
-						return 0.0
-					else:
-						return 1.0 - pct_diff
+	return 0.0
+	# if len(bounding_rectangles_to_check_against) < 2:
+	# 	return 0.0
+	# else:
+	# 	removed_self_from_calculations = False
+	# 	distance_differences = []
+	# 	for rect_coords in bounding_rectangles_to_check_against:
+	# 		if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
+	# 			removed_self_from_calculations = True
+	# 		else:
+	# 			if rect_coords_to_score['x'] < rect_coords['x']:
+	# 				left_side_right_edge = rect_coords_to_score['x'] + rect_coords_to_score['width']
+	# 				right_side_left_edge = rect_coords['x']
+	# 			else:
+	# 				left_side_right_edge = float(rect_coords['x'] + rect_coords['width'])
+	# 				right_side_left_edge = float(rect_coords_to_score['x'])
+	# 			if left_side_right_edge > right_side_left_edge:
+	# 				return 0.0
+	# 			else:
+	# 				best_top_width = [rect_coords['width'], rect_coords_to_score['width']]
+	# 				pct_diff = abs(( ((right_side_left_edge - left_side_right_edge) / rect_coords_to_score['width']) / 3.125))
+	# 				print "pct diff"
+	# 				print pct_diff
+	# 				if pct_diff > 1.0:
+	# 					return 0.0
+	# 				else:
+	# 					return 1.0 - pct_diff
 
 
 
@@ -222,10 +223,10 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 hmin = 78
 hmax = 175
 
-smin = 62
+smin = 44
 smax = 255
 
-vmin = 59
+vmin = 30
 vmax = 255
 
 blur_factor = 33
