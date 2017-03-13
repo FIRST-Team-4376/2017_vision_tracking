@@ -116,6 +116,46 @@ def bottom_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_c
 
 
 
+def the_new_way(image_to_draw_on, contours, approximation_value):
+	contour_centers = []
+	cv2.drawContours(image_to_draw_on, contours, -1, (0,255,0), 4)
+	image_height, image_width = image_to_draw_on.shape[:2]
+	for contour in contours:
+		M = cv2.moments(contour)
+		if M["m00"] > 0:
+			cX = int(M["m10"] / M["m00"]) # center x coord
+			cY = int(M["m01"] / M["m00"]) # center y coord
+			cv2.circle(image_to_draw_on, (cX, cY), 7, (255, 0, 255), -1)
+			contour_centers.append([cX, cY])
+	if len(contour_centers) == 2:
+
+		if contour_centers[0][0] < contour_centers[1][0]:
+			left_contour = contour_centers[0]
+			right_contour = contour_centers[1]
+		else:
+			right_contour = contour_centers[0]
+			left_contour = contour_centers[1]
+
+		left_center_x = left_contour[0]
+		left_center_y = left_contour[1]
+		right_center_x = right_contour[0]
+		right_center_y = right_contour[1]
+
+		overall_mid_x = (left_center_x + right_center_x) / 2
+		overall_mid_y = (left_center_y + right_center_y) / 2
+		cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
+
+		# Send stuff to roboRIO
+		sd.putNumber('leftCenterX', left_center_x)
+		sd.putNumber('leftCenterY', left_center_y)
+		sd.putNumber('rightCenterX', left_center_x)
+		sd.putNumber('rightCenterY', left_center_y)
+		sd.putNumber('overallCenterX', overall_mid_x)
+		sd.putNumber('overallCenterY', overall_mid_y)
+		sd.putNumber('imageWidth', image_width)
+		sd.putNumber('imageHeight', image_height)
+
+
 
 def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 	contour_centers = []
@@ -220,13 +260,13 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 
 #############################################################################
 
-hmin = 78
-hmax = 175
+hmin = 58
+hmax = 94
 
 smin = 44
 smax = 255
 
-vmin = 30
+vmin = 20
 vmax = 255
 
 blur_factor = 33
@@ -294,13 +334,16 @@ while(True):
 	im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	#cv2.drawContours(masked_image, contours, -1, (0,255,0), 3)
 	final_approx_value = float(approx_value) / pow(10.0, approx_value_divisor)
-	draw_bounding_rectangle(img, contours, final_approx_value)
+	# draw_bounding_rectangle(img, contours, final_approx_value)
+	the_new_way(img, contours, final_approx_value)
 
 
 	# imshow doesnt work on mac for some reason
 
 	# cv2.rectangle(masked_image,(15,20),(70, 50), ( 0, 55, 255), 2)
 
+	cv2.putText(img, repr(hmin), (0,20), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
+	cv2.putText(img, repr(hmax), (0,50), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
 	small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 	#small2 = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 	#small3 = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
