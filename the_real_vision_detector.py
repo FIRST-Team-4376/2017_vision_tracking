@@ -69,6 +69,8 @@ def horizontal_distance_from_other_rect_score(rect_coords_to_score, bounding_rec
 				else:
 					best_top_width = [rect_coords['width'], rect_coords_to_score['width']]
 					pct_diff = abs(( ((right_side_left_edge - left_side_right_edge) / rect_coords_to_score['width']) / 3.125))
+					print "pct diff"
+					print pct_diff
 					if pct_diff < 1.0:
 						return 0.0
 					else:
@@ -78,36 +80,38 @@ def horizontal_distance_from_other_rect_score(rect_coords_to_score, bounding_rec
 
 
 def top_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_check_against, image_height):
-	if len(bounding_rectangles_to_check_against) < 2:
-		return 0.0
-	else:
-		removed_self_from_calculations = False
-		top_edge_height_differences = []
-		for rect_coords in bounding_rectangles_to_check_against:
-			if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
-				removed_self_from_calculations = True
-			else:
-				top_edge_height_differences.append( abs(rect_coords_to_score['y'] - rect_coords['y']) )
+	return 0.0
+	# if len(bounding_rectangles_to_check_against) < 2:
+	# 	return 0.0
+	# else:
+	# 	removed_self_from_calculations = False
+	# 	top_edge_height_differences = []
+	# 	for rect_coords in bounding_rectangles_to_check_against:
+	# 		if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
+	# 			removed_self_from_calculations = True
+	# 		else:
+	# 			top_edge_height_differences.append( abs(rect_coords_to_score['y'] - rect_coords['y']) )
 
-		closest_value = find_closest_value(0.0, top_edge_height_differences)
-		pct = float(closest_value) / float(image_height)
-		return 1.0 - pct
+	# 	closest_value = find_closest_value(0.0, top_edge_height_differences)
+	# 	pct = float(closest_value) / float(image_height)
+	# 	return 1.0 - pct
 
 def bottom_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_check_against, image_height):
-	if len(bounding_rectangles_to_check_against) < 2:
-		return 0.0
-	else:
-		removed_self_from_calculations = False
-		top_edge_height_differences = []
-		for rect_coords in bounding_rectangles_to_check_against:
-			if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
-				removed_self_from_calculations = True
-			else:
-				top_edge_height_differences.append( abs((rect_coords_to_score['y'] + rect_coords_to_score['height']) - (rect_coords['y'] + rect_coords['height'])) )
+	return 0.0
+	# if len(bounding_rectangles_to_check_against) < 2:
+	# 	return 0.0
+	# else:
+	# 	removed_self_from_calculations = False
+	# 	top_edge_height_differences = []
+	# 	for rect_coords in bounding_rectangles_to_check_against:
+	# 		if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
+	# 			removed_self_from_calculations = True
+	# 		else:
+	# 			top_edge_height_differences.append( abs((rect_coords_to_score['y'] + rect_coords_to_score['height']) - (rect_coords['y'] + rect_coords['height'])) )
 
-		closest_value = find_closest_value(0.0, top_edge_height_differences)
-		pct = float(closest_value) / float(image_height)
-		return 1.0 - pct
+	# 	closest_value = find_closest_value(0.0, top_edge_height_differences)
+	# 	pct = float(closest_value) / float(image_height)
+	# 	return 1.0 - pct
 
 
 
@@ -215,13 +219,13 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 
 #############################################################################
 
-hmin = 17
+hmin = 78
 hmax = 175
 
-smin = 0
-smax = 44
+smin = 62
+smax = 255
 
-vmin = 150
+vmin = 59
 vmax = 255
 
 blur_factor = 33
