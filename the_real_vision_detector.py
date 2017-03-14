@@ -144,6 +144,7 @@ def the_new_way(image_to_draw_on, contours, approximation_value):
 		overall_mid_x = (left_center_x + right_center_x) / 2
 		overall_mid_y = (left_center_y + right_center_y) / 2
 		cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
+		print overall_mid_x
 
 		# Send stuff to roboRIO
 		sd.putNumber('leftCenterX', left_center_x)
