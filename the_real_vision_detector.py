@@ -289,7 +289,7 @@ cv2.createTrackbar('approx_value_divisor','controls', approx_value_divisor, 10, 
 cv2.createTrackbar('approx_value','controls', approx_value, 255, nothing)
 
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 ret, img = cap.read()
 small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 cv2.imshow('controls',small)
