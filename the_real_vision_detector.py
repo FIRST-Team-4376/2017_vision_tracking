@@ -81,21 +81,20 @@ def horizontal_distance_from_other_rect_score(rect_coords_to_score, bounding_rec
 
 
 def top_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_check_against, image_height):
-	return 0.0
-	# if len(bounding_rectangles_to_check_against) < 2:
-	# 	return 0.0
-	# else:
-	# 	removed_self_from_calculations = False
-	# 	top_edge_height_differences = []
-	# 	for rect_coords in bounding_rectangles_to_check_against:
-	# 		if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
-	# 			removed_self_from_calculations = True
-	# 		else:
-	# 			top_edge_height_differences.append( abs(rect_coords_to_score['y'] - rect_coords['y']) )
+	if len(bounding_rectangles_to_check_against) < 2:
+		return 0.0
+	else:
+		removed_self_from_calculations = False
+		top_edge_height_differences = []
+		for rect_coords in bounding_rectangles_to_check_against:
+			if rect_coords == rect_coords_to_score and removed_self_from_calculations == False:
+				removed_self_from_calculations = True
+			else:
+				top_edge_height_differences.append( abs(rect_coords_to_score['y'] - rect_coords['y']) )
 
-	# 	closest_value = find_closest_value(0.0, top_edge_height_differences)
-	# 	pct = float(closest_value) / float(image_height)
-	# 	return 1.0 - pct
+		closest_value = find_closest_value(0.0, top_edge_height_differences)
+		pct = float(closest_value) / float(image_height)
+		return 1.0 - pct
 
 def bottom_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_check_against, image_height):
 	return 0.0
@@ -335,8 +334,8 @@ while(True):
 	im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	#cv2.drawContours(masked_image, contours, -1, (0,255,0), 3)
 	final_approx_value = float(approx_value) / pow(10.0, approx_value_divisor)
-	# draw_bounding_rectangle(img, contours, final_approx_value)
-	the_new_way(img, contours, final_approx_value)
+	draw_bounding_rectangle(img, contours, final_approx_value)
+	# the_new_way(img, contours, final_approx_value)
 
 
 	# imshow doesnt work on mac for some reason
