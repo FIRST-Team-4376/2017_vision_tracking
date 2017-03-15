@@ -213,15 +213,15 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 			# 	print hsv[cX][cY]
 			# 	cv2.putText(image_to_draw_on, repr(hsv[cX][cY]), (cX+5, cY+5), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255),2)
 
-		if score == rects_with_scores[0][1]:
-			cv2.rectangle(image_to_draw_on,(rect['x'],rect['y']),(rect['x']+rect['width'], rect['y']+rect['height']), (255,0,0), 4)
-		else:
-			cv2.rectangle(image_to_draw_on,(rect['x'],rect['y']),(rect['x']+rect['width'], rect['y']+rect['height']), (0,0,255), 4)
+		# if score == rects_with_scores[0][1]:
+		# 	cv2.rectangle(image_to_draw_on,(rect['x'],rect['y']),(rect['x']+rect['width'], rect['y']+rect['height']), (255,0,0), 4)
+		# else:
+		# 	cv2.rectangle(image_to_draw_on,(rect['x'],rect['y']),(rect['x']+rect['width'], rect['y']+rect['height']), (0,0,255), 4)
 
-		cv2.putText(image_to_draw_on, repr(score), (rect['x']+rect['width']+5, rect['y']), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
-		cv2.putText(image_to_draw_on, repr(width_height_ratio_score), (rect['x']+rect['width']+5, rect['y']+50), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
+		# cv2.putText(image_to_draw_on, repr(score), (rect['x']+rect['width']+5, rect['y']), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
+		# cv2.putText(image_to_draw_on, repr(width_height_ratio_score), (rect['x']+rect['width']+5, rect['y']+50), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
 		# cv2.putText(image_to_draw_on, repr(top_edge_score), (rect['x']+rect['width']+5, rect['y']+100), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
-		cv2.putText(image_to_draw_on, repr(horizontal_distance_score), (rect['x']+rect['width']+5, rect['y']+150), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
+		# cv2.putText(image_to_draw_on, repr(horizontal_distance_score), (rect['x']+rect['width']+5, rect['y']+150), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
 
 
 
@@ -243,8 +243,8 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 			right_contour = contour_centers[0]
 			left_contour = contour_centers[1]
 
-		sd.putNumber('overallScoreLeft', left_contour[2])
-		sd.putNumber('overallScoreRight', right_contour[2])
+		# sd.putNumber('overallScoreLeft', left_contour[2])
+		# sd.putNumber('overallScoreRight', right_contour[2])
 		left_center_x = left_contour[0]
 		left_center_y = left_contour[1]
 		right_center_x = right_contour[0]
@@ -257,12 +257,12 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 		print overall_mid_x
 
 		# Send stuff to roboRIO
-		sd.putNumber('leftCenterX', left_center_x)
-		sd.putNumber('leftCenterY', left_center_y)
-		sd.putNumber('rightCenterX', left_center_x)
-		sd.putNumber('rightCenterY', left_center_y)
+		# sd.putNumber('leftCenterX', left_center_x)
+		# sd.putNumber('leftCenterY', left_center_y)
+		# sd.putNumber('rightCenterX', left_center_x)
+		# sd.putNumber('rightCenterY', left_center_y)
 		sd.putNumber('overallCenterX', overall_mid_x)
-		sd.putNumber('overallCenterY', overall_mid_y)
+		# sd.putNumber('overallCenterY', overall_mid_y)
 		sd.putNumber('imageWidth', image_width)
 		sd.putNumber('imageHeight', image_height)
 
@@ -284,22 +284,22 @@ blur_factor = 33
 approx_value_divisor = 2
 approx_value = 1
 
-cv2.namedWindow("controls", cv2.WINDOW_NORMAL)
-cv2.createTrackbar('blur_factor','controls', blur_factor, 50, nothing)
-cv2.createTrackbar('Hmin','controls', hmin, 255, nothing)
-cv2.createTrackbar('Hmax','controls', hmax, 255, nothing)
-cv2.createTrackbar('Smin','controls', smin, 255, nothing)
-cv2.createTrackbar('Smax','controls', smax, 255, nothing)
-cv2.createTrackbar('Vmin','controls', vmin, 255, nothing)
-cv2.createTrackbar('Vmax','controls', vmax, 255, nothing)
-cv2.createTrackbar('approx_value_divisor','controls', approx_value_divisor, 10, nothing)
-cv2.createTrackbar('approx_value','controls', approx_value, 255, nothing)
+# cv2.namedWindow("controls", cv2.WINDOW_NORMAL)
+# cv2.createTrackbar('blur_factor','controls', blur_factor, 50, nothing)
+# cv2.createTrackbar('Hmin','controls', hmin, 255, nothing)
+# cv2.createTrackbar('Hmax','controls', hmax, 255, nothing)
+# cv2.createTrackbar('Smin','controls', smin, 255, nothing)
+# cv2.createTrackbar('Smax','controls', smax, 255, nothing)
+# cv2.createTrackbar('Vmin','controls', vmin, 255, nothing)
+# cv2.createTrackbar('Vmax','controls', vmax, 255, nothing)
+# cv2.createTrackbar('approx_value_divisor','controls', approx_value_divisor, 10, nothing)
+# cv2.createTrackbar('approx_value','controls', approx_value, 255, nothing)
 
 
 cap = cv2.VideoCapture(0)
 ret, img = cap.read()
-small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
-cv2.imshow('controls',small)
+# small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
+# cv2.imshow('controls',small)
 
 NetworkTables.initialize(server='roborio-4376-frc.local');
 sd = NetworkTables.getTable("SmartDashboard")
@@ -351,25 +351,25 @@ while(True):
 
 	# cv2.rectangle(masked_image,(15,20),(70, 50), ( 0, 55, 255), 2)
 
-	cv2.putText(img, repr(hmin), (0,20), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
-	cv2.putText(img, repr(hmax), (0,50), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
-	#small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
+	# cv2.putText(img, repr(hmin), (0,20), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
+	# cv2.putText(img, repr(hmax), (0,50), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
+	small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 	#small2 = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 	#small3 = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
 	# small_thresh = cv2.resize(thresh, (0,0), fx=0.5, fy=0.5)
-	#cv2.imshow('frame',small)
+	cv2.imshow('frame',small)
 	# cv2.imshow('frame2',small2)
 	# cv2.imshow('frame3',small_thresh)
 
-	blur_factor = cv2.getTrackbarPos ('blur_factor', 'controls')
-	hmin = cv2.getTrackbarPos ('Hmin', 'controls')
-	hmax = cv2.getTrackbarPos ('Hmax', 'controls')
-	smin = cv2.getTrackbarPos ('Smin', 'controls')
-	smax = cv2.getTrackbarPos ('Smax', 'controls')
-	vmin = cv2.getTrackbarPos ('Vmin', 'controls')
-	vmax = cv2.getTrackbarPos ('Vmax', 'controls')
-	approx_value_divisor = cv2.getTrackbarPos ('approx_value_divisor', 'controls')
-	approx_value = cv2.getTrackbarPos ('approx_value', 'controls')
+	# blur_factor = cv2.getTrackbarPos ('blur_factor', 'controls')
+	# hmin = cv2.getTrackbarPos ('Hmin', 'controls')
+	# hmax = cv2.getTrackbarPos ('Hmax', 'controls')
+	# smin = cv2.getTrackbarPos ('Smin', 'controls')
+	# smax = cv2.getTrackbarPos ('Smax', 'controls')
+	# vmin = cv2.getTrackbarPos ('Vmin', 'controls')
+	# vmax = cv2.getTrackbarPos ('Vmax', 'controls')
+	# approx_value_divisor = cv2.getTrackbarPos ('approx_value_divisor', 'controls')
+	# approx_value = cv2.getTrackbarPos ('approx_value', 'controls')
 
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
