@@ -226,8 +226,15 @@ def draw_bounding_rectangle(image_to_draw_on, contours, approximation_value):
 
 
 
-
-	if len(contour_centers) == 2:
+	if len(contour_centers) == 1:
+		only_contour = contour_centers[0]
+		only_center_x = only_contour[0]
+		sd.putNumber('overallCenterX', only_center_x)
+		sd.putNumber('imageWidth', image_width)
+		sd.putNumber('imageHeight', image_height)
+		print "one contour!"
+		print only_center_x
+	elif len(contour_centers) == 2:
 
 		if contour_centers[0][0] < contour_centers[1][0]:
 			left_contour = contour_centers[0]
@@ -346,11 +353,11 @@ while(True):
 
 	cv2.putText(img, repr(hmin), (0,20), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
 	cv2.putText(img, repr(hmax), (0,50), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),2)
-	small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
+	#small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 	#small2 = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 	#small3 = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
 	# small_thresh = cv2.resize(thresh, (0,0), fx=0.5, fy=0.5)
-	cv2.imshow('frame',small)
+	#cv2.imshow('frame',small)
 	# cv2.imshow('frame2',small2)
 	# cv2.imshow('frame3',small_thresh)
 
