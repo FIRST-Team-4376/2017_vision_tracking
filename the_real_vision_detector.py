@@ -14,6 +14,17 @@ def nothing(x):
 	pass
 
 
+def sort_contours_by_area(contours):
+	return sorted(contours, key=lambda x: x[1], reverse=True)
+
+
+def center_of_contour(contour):
+	M = cv2.moments(contour)
+	if M["m00"] > 0:
+		cX = int(M["m10"] / M["m00"]) # center x coord
+		cY = int(M["m01"] / M["m00"]) # center y coord
+		return [cX, cY]
+
 def find_closest_value(target_value, list_of_values):
 	closest_value = None
 	for val in list_of_values:
@@ -114,45 +125,57 @@ def bottom_edge_same_height_score(rect_coords_to_score, bounding_rectangles_to_c
 
 
 
-def the_new_way(image_to_draw_on, contours, approximation_value):
-	contour_centers = []
-	cv2.drawContours(image_to_draw_on, contours, -1, (0,255,0), 4)
-	image_height, image_width = image_to_draw_on.shape[:2]
-	for contour in contours:
-		M = cv2.moments(contour)
-		if M["m00"] > 0:
-			cX = int(M["m10"] / M["m00"]) # center x coord
-			cY = int(M["m01"] / M["m00"]) # center y coord
-			cv2.circle(image_to_draw_on, (cX, cY), 7, (255, 0, 255), -1)
-			contour_centers.append([cX, cY])
-	if len(contour_centers) == 2:
+def the_new_way(image_to_draw_on, contours, approximation_value, frameNumber):
+	if len(contours) > 1:
+		contours = sort_contours_by_area(contours)
+		contour_centers = []
+		cv2.drawContours(image_to_draw_on, contours, -1, (0,255,0), 4)
+		image_height, image_width = image_to_draw_on.shape[:2]
 
-		if contour_centers[0][0] < contour_centers[1][0]:
-			left_contour = contour_centers[0]
-			right_contour = contour_centers[1]
-		else:
-			right_contour = contour_centers[0]
-			left_contour = contour_centers[1]
+		for contour in contours:
+			M = cv2.moments(contour)
+			if M["m00"] > 0:
+				cX = int(M["m10"] / M["m00"]) # center x coord
+				cY = int(M["m01"] / M["m00"]) # center y coord
+				cv2.circle(image_to_draw_on, (cX, cY), 7, (255, 0, 255), -1)
+				contour_centers.append([cX, cY])
+		if len(contour_centers) == 2:
 
-		left_center_x = left_contour[0]
-		left_center_y = left_contour[1]
-		right_center_x = right_contour[0]
-		right_center_y = right_contour[1]
+			if contour_centers[0][0] < contour_centers[1][0]:
+				left_contour = contour_centers[0]
+				right_contour = contour_centers[1]
+			else:
+				right_contour = contour_centers[0]
+				left_contour = contour_centers[1]
 
-		overall_mid_x = (left_center_x + right_center_x) / 2
-		overall_mid_y = (left_center_y + right_center_y) / 2
-		cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
-		print overall_mid_x
+			left_center_x = left_contour[0]
+			left_center_y = left_contour[1]
+			right_center_x = right_contour[0]
+			right_center_y = right_contour[1]
 
-		# Send stuff to roboRIO
-		sd.putNumber('leftCenterX', left_center_x)
-		sd.putNumber('leftCenterY', left_center_y)
-		sd.putNumber('rightCenterX', left_center_x)
-		sd.putNumber('rightCenterY', left_center_y)
-		sd.putNumber('overallCenterX', overall_mid_x)
-		sd.putNumber('overallCenterY', overall_mid_y)
-		sd.putNumber('imageWidth', image_width)
-		sd.putNumber('imageHeight', image_height)
+			overall_mid_x = (left_center_x + right_center_x) / 2
+			overall_mid_y = (left_center_y + right_center_y) / 2
+			cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
+
+			# Send stuff to roboRIO
+			# sd.putNumber('leftCenterX', left_center_x)
+			# sd.putNumber('leftCenterY', left_center_y)
+			# sd.putNumber('rightCenterX', left_center_x)
+			# sd.putNumber('rightCenterY', left_center_y)
+			sd.putNumber('overallCenterX', overall_mid_x)
+			sd.putNumber('frameNumber', frameNumber)
+			print overall_mid_x
+			# sd.putNumber('overallCenterY', overall_mid_y)
+			# sd.putNumber('imageWidth', image_width)
+			# sd.putNumber('imageHeight', image_height)
+	elif len(contours) == 1:
+		contour_center_x_y = center_of_contour(contours[0])
+		sd.putNumber('overallCenterX', contour_center_x_y[0])
+		sd.putNumber('frameNumber', frameNumber)
+		print "one contour!"
+		print contour_center_x_y[0]
+
+
 
 
 
@@ -306,8 +329,13 @@ ret, img = cap.read()
 
 NetworkTables.initialize(server='roborio-4376-frc.local');
 sd = NetworkTables.getTable("SmartDashboard")
-
+frameNumber = 0
 while(True):
+	if (frameNumber == 0):
+		frameNumber = 1
+	else:
+		frameNumber = 0
+
 	# time.sleep(.5) # For testing with a real laptop (simulates raspberry pi)
 
 	# print "################################"
@@ -346,8 +374,9 @@ while(True):
 	im2, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	#cv2.drawContours(masked_image, contours, -1, (0,255,0), 3)
 	final_approx_value = float(approx_value) / pow(10.0, approx_value_divisor)
-	draw_bounding_rectangle(img, contours, final_approx_value)
-	# the_new_way(img, contours, final_approx_value)
+	# draw_bounding_rectangle(img, contours, final_approx_value)
+
+	the_new_way(img, contours, final_approx_value, frameNumber)
 
 
 	# imshow doesnt work on mac for some reason
