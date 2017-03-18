@@ -1,5 +1,6 @@
 import cv2
 from networktables import NetworkTables
+import numpy as np
 
 cap = cv2.VideoCapture(0)
 ret, img = cap.read()
