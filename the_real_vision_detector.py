@@ -297,6 +297,9 @@ approx_value = 1
 
 
 cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH,640);
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480);
+
 ret, img = cap.read()
 # small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)
 # cv2.imshow('controls',small)
