@@ -24,6 +24,8 @@ def center_of_contour(contour):
 		cX = int(M["m10"] / M["m00"]) # center x coord
 		cY = int(M["m01"] / M["m00"]) # center y coord
 		return [cX, cY]
+	else:
+		return None
 
 def find_closest_value(target_value, list_of_values):
 	closest_value = None
@@ -59,7 +61,6 @@ def width_height_ratio_pct_difference(width, height):
 		return result
 
 
-############# NOT DONE
 def horizontal_distance_from_other_rect_score(rect_coords_to_score, bounding_rectangles_to_check_against):
 	# return 0.0
 	if len(bounding_rectangles_to_check_against) < 2:
@@ -132,48 +133,46 @@ def the_new_way(image_to_draw_on, contours, approximation_value, frameNumber):
 		cv2.drawContours(image_to_draw_on, contours, -1, (0,255,0), 4)
 		image_height, image_width = image_to_draw_on.shape[:2]
 
-		for contour in contours:
-			M = cv2.moments(contour)
-			if M["m00"] > 0:
-				cX = int(M["m10"] / M["m00"]) # center x coord
-				cY = int(M["m01"] / M["m00"]) # center y coord
-				cv2.circle(image_to_draw_on, (cX, cY), 7, (255, 0, 255), -1)
-				contour_centers.append([cX, cY])
-		if len(contour_centers) == 2:
+		for contour in contours[:2]:
+				contour_center = center_of_contour(contour)
+				if contour_center is not None:
+					cv2.circle(image_to_draw_on, (contour_center[0], contour_center[1]), 7, (255, 0, 255), -1)
+					contour_centers.append([cX, cY])
 
-			if contour_centers[0][0] < contour_centers[1][0]:
-				left_contour = contour_centers[0]
-				right_contour = contour_centers[1]
-			else:
-				right_contour = contour_centers[0]
-				left_contour = contour_centers[1]
+		if contour_centers[0][0] < contour_centers[1][0]:
+			left_contour = contour_centers[0]
+			right_contour = contour_centers[1]
+		else:
+			right_contour = contour_centers[0]
+			left_contour = contour_centers[1]
 
-			left_center_x = left_contour[0]
-			left_center_y = left_contour[1]
-			right_center_x = right_contour[0]
-			right_center_y = right_contour[1]
+		left_center_x = left_contour[0]
+		left_center_y = left_contour[1]
+		right_center_x = right_contour[0]
+		right_center_y = right_contour[1]
 
-			overall_mid_x = (left_center_x + right_center_x) / 2
-			overall_mid_y = (left_center_y + right_center_y) / 2
-			cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
+		# overall_mid_x = (left_center_x + right_center_x) / 2
+		# overall_mid_y = (left_center_y + right_center_y) / 2
+		cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
 
-			# Send stuff to roboRIO
-			# sd.putNumber('leftCenterX', left_center_x)
-			# sd.putNumber('leftCenterY', left_center_y)
-			# sd.putNumber('rightCenterX', left_center_x)
-			# sd.putNumber('rightCenterY', left_center_y)
-			sd.putNumber('overallCenterX', overall_mid_x)
-			sd.putNumber('frameNumber', frameNumber)
-			print overall_mid_x
-			# sd.putNumber('overallCenterY', overall_mid_y)
-			# sd.putNumber('imageWidth', image_width)
-			# sd.putNumber('imageHeight', image_height)
+		# Send stuff to roboRIO
+		# sd.putNumber('leftCenterX', left_center_x)
+		# sd.putNumber('leftCenterY', left_center_y)
+		# sd.putNumber('rightCenterX', left_center_x)
+		# sd.putNumber('rightCenterY', left_center_y)
+		sd.putNumber('overallCenterX', overall_mid_x)
+		sd.putNumber('frameNumber', frameNumber)
+		print overall_mid_x
+		# sd.putNumber('overallCenterY', overall_mid_y)
+		# sd.putNumber('imageWidth', image_width)
+		# sd.putNumber('imageHeight', image_height)
 	elif len(contours) == 1:
 		contour_center_x_y = center_of_contour(contours[0])
-		sd.putNumber('overallCenterX', contour_center_x_y[0])
-		sd.putNumber('frameNumber', frameNumber)
-		print "one contour!"
-		print contour_center_x_y[0]
+		if contour_center_x_y is not None:
+			sd.putNumber('overallCenterX', contour_center_x_y[0])
+			sd.putNumber('frameNumber', frameNumber)
+			print "one contour!"
+			print contour_center_x_y[0]
 
 
 
@@ -320,8 +319,8 @@ approx_value = 1
 
 
 cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH,640);
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT,480);
+cap.set(cv2.CAP_PROP_FRAME_WIDTH,320);
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT,240);
 
 ret, img = cap.read()
 # small = cv2.resize(img, (0,0), fx=0.5, fy=0.5)

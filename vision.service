@@ -1,0 +1,10 @@
+[Unit]
+Description=VisionSystem
+After=network.target
+
+[Service]
+ExecStart=/home/pi/2017_vision_tracking/start_vision_tracking.sh
+User=pi
+
+[Install]
+WantedBy=multi-user.target
