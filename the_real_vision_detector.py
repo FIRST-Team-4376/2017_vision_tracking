@@ -1,3 +1,5 @@
+#/usr/bin/python
+
 import numpy as np
 import time
 import cv2
@@ -130,13 +132,13 @@ def the_new_way(image_to_draw_on, contours, approximation_value, frameNumber):
 	if len(contours) > 1:
 		contours = sort_contours_by_area(contours)
 		contour_centers = []
-		# cv2.drawContours(image_to_draw_on, contours, -1, (0,255,0), 4)
+		#cv2.drawContours(image_to_draw_on, contours, -1, (0,255,0), 4)
 		image_height, image_width = image_to_draw_on.shape[:2]
 
 		for contour in contours[:2]:
 				contour_center = center_of_contour(contour)
 				if contour_center is not None:
-					cv2.circle(image_to_draw_on, (contour_center[0], contour_center[1]), 7, (255, 0, 255), -1)
+					#cv2.circle(image_to_draw_on, (contour_center[0], contour_center[1]), 7, (255, 0, 255), -1)
 					contour_centers.append([contour_center[0], contour_center[1]])
 
 		if len(contour_centers) == 2:
@@ -154,7 +156,7 @@ def the_new_way(image_to_draw_on, contours, approximation_value, frameNumber):
 
 			overall_mid_x = (left_center_x + right_center_x) / 2
 			overall_mid_y = (left_center_y + right_center_y) / 2
-			# cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
+			#cv2.circle(image_to_draw_on, (int(overall_mid_x), int(overall_mid_y)), 7, (255, 0, 255), -1)
 
 			# Send stuff to roboRIO
 			# sd.putNumber('leftCenterX', left_center_x)
@@ -172,6 +174,7 @@ def the_new_way(image_to_draw_on, contours, approximation_value, frameNumber):
 		if contour_center_x_y is not None:
 			sd.putNumber('overallCenterX', contour_center_x_y[0])
 			sd.putNumber('frameNumber', frameNumber)
+#			cv2.circle(image_to_draw_on, (contour_center_x_y[0], contour_center[1]), 7, (255, 0, 255), -1)
 			print "one contour!"
 			print contour_center_x_y[0]
 
@@ -390,6 +393,7 @@ while(True):
 	#small3 = cv2.resize(mask, (0,0), fx=0.5, fy=0.5)
 	# small_thresh = cv2.resize(thresh, (0,0), fx=0.5, fy=0.5)
 	# cv2.imshow('frame',small)
+	#cv2.imshow('frame', img)
 	# cv2.imshow('frame2',small2)
 	# cv2.imshow('frame3',small_thresh)
 
@@ -403,8 +407,8 @@ while(True):
 	# approx_value_divisor = cv2.getTrackbarPos ('approx_value_divisor', 'controls')
 	# approx_value = cv2.getTrackbarPos ('approx_value', 'controls')
 
-	if cv2.waitKey(1) & 0xFF == ord('q'):
-		break
+	#if cv2.waitKey(1) & 0xFF == ord('q'):
+	#	break
 
 cap.release()
 cv2.destroyAllWindows()
